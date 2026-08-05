@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>PRODE Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pitch-dark:#0b2e22;
+    --pitch-mid:#0f3b2b;
+    --pitch-line:rgba(245,241,230,0.08);
+    --chalk:#f5f1e6;
+    --chalk-dim:#b9c9bf;
+    --amber:#ffb020;
+    --amber-dim:#8a6a2a;
+    --red:#d6544a;
+    --green-ok:#5fbf87;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      repeating-linear-gradient(90deg, var(--pitch-line) 0 2px, transparent 2px 64px),
+      linear-gradient(180deg, var(--pitch-dark), var(--pitch-mid));
+    color:var(--chalk);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+  }
+  .wrap{max-width:900px;margin:0 auto;padding:20px 16px 60px;}
+  h1,h2,h3{font-family:'Bebas Neue',sans-serif;letter-spacing:0.03em;margin:0;}
+  h1{font-size:2.4rem;color:var(--amber);}
+  h2{font-size:1.5rem;color:var(--chalk);margin-bottom:10px;}
+  .subtitle{color:var(--chalk-dim);font-size:0.9rem;margin-top:2px;}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;border-bottom:2px solid var(--pitch-line);padding-bottom:14px;margin-bottom:18px;}
+  select,input,textarea,button{
+    font-family:'Inter',sans-serif;
+    background:rgba(245,241,230,0.05);
+    border:1px solid rgba(245,241,230,0.2);
+    color:var(--chalk);
+    border-radius:6px;
+    padding:8px 10px;
+    font-size:0.92rem;
+  }
+  input::placeholder, textarea::placeholder{color:var(--chalk-dim);}
+  button{
+    cursor:pointer;
+    background:var(--amber);
+    color:#1a1206;
+    font-weight:700;
+    border:none;
+    transition:transform .08s ease, filter .15s ease;
+  }
+  button:hover{filter:brightness(1.08);}
+  button:active{transform:scale(0.97);}
+  button.ghost{
+    background:transparent;
+    color:var(--chalk);
+    border:1px solid rgba(245,241,230,0.3);
+  }
+  button.danger{background:var(--red);color:#fff;}
+  button.small{padding:5px 9px;font-size:0.78rem;}
+  .fecha-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  nav.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:20px;border-bottom:1px solid var(--pitch-line);}
+  nav.tabs button{
+    background:transparent;color:var(--chalk-dim);border-radius:8px 8px 0 0;
+    padding:9px 16px;font-family:'Bebas Neue',sans-serif;font-size:1.05rem;letter-spacing:0.04em;
+  }
+  nav.tabs button.active{background:rgba(255,176,32,0.12);color:var(--amber);border-bottom:2px solid var(--amber);}
+  .card{
+    background:rgba(0,0,0,0.18);
+    border:1px solid var(--pitch-line);
+    border-radius:10px;
+    padding:16px;
+    margin-bottom:16px;
+  }
+  .empty{
+    text-align:center;padding:50px 20px;color:var(--chalk-dim);
+    border:1px dashed rgba(245,241,230,0.25);border-radius:12px;
+  }
+  .empty button{margin-top:14px;}
+  table{width:100%;border-collapse:collapse;}
+  th,td{padding:7px 8px;text-align:left;border-bottom:1px solid var(--pitch-line);font-size:0.9rem;}
+  th{color:var(--amber-dim);font-weight:600;text-transform:uppercase;font-size:0.72rem;letter-spacing:0.05em;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .match-row{display:grid;grid-template-columns:32px 1fr 1fr auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--pitch-line);}
+  .match-row input[type=text]{width:100%;}
+  .num-badge{
+    font-family:'JetBrains Mono',monospace;color:var(--amber);font-weight:700;text-align:center;
+  }
+  .wc-tag{font-size:0.68rem;background:var(--amber);color:#1a1206;padding:2px 6px;border-radius:20px;font-weight:700;margin-left:6px;}
+  label.chk{display:flex;align-items:center;gap:5px;font-size:0.78rem;color:var(--chalk-dim);white-space:nowrap;}
+  .ticket{
+    background:repeating-linear-gradient(90deg, transparent, transparent 8px, rgba(245,241,230,0.4) 8px, rgba(245,241,230,0.4) 9px) top/100% 1px no-repeat,
+      linear-gradient(180deg,#0e3527,#0a2a1e);
+    border:1px solid rgba(245,241,230,0.25);
+    border-radius:8px;
+    padding:18px;
+    position:relative;
+  }
+  .ticket::before, .ticket::after{
+    content:"";position:absolute;width:18px;height:18px;background:var(--pitch-dark);border-radius:50%;
+    top:50%;transform:translateY(-50%);
+  }
+  .ticket::before{left:-9px;} .ticket::after{right:-9px;}
+  pre.copytext{white-space:pre-wrap;font-family:'JetBrains Mono',monospace;font-size:0.88rem;line-height:1.5;color:var(--chalk);}
+  textarea{width:100%;min-height:90px;resize:vertical;}
+  .row-inline{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .col{display:flex;flex-direction:column;gap:4px;}
+  .col label{font-size:0.72rem;color:var(--chalk-dim);text-transform:uppercase;letter-spacing:0.04em;}
+  .score-input{width:52px;text-align:center;}
+  .participant-block{border:1px solid var(--pitch-line);border-radius:8px;padding:12px;margin-bottom:12px;}
+  .pos-1{color:var(--amber);}
+  .toast{
+    position:fixed;bottom:18px;left:50%;transform:translateX(-50%);
+    background:var(--green-ok);color:#0a2a1e;padding:9px 18px;border-radius:20px;font-weight:700;
+    font-size:0.85rem;box-shadow:0 4px 14px rgba(0,0,0,0.3);z-index:99;opacity:0;transition:opacity .25s ease;pointer-events:none;
+  }
+  .toast.show{opacity:1;}
+  .muted{color:var(--chalk-dim);}
+  .flexbetween{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+  .del-btn{background:transparent;color:var(--red);border:none;font-size:1rem;padding:2px 6px;}
+  hr.sep{border:none;border-top:1px solid var(--pitch-line);margin:14px 0;}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+let prodeIndex = [];
+let currentId = null;
+let current = null; // full prode data object
+let activeTab = 'fixture';
+let aiBusyName = null;
+
+const $ = (sel, root=document) => root.querySelector(sel);
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+function showToast(msg){
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+// ---------- storage (via /api/data, backed by Supabase) ----------
+async function storageGet(key){
+  const r = await fetch('/api/data?key=' + encodeURIComponent(key));
+  if(r.status===404) return null;
+  if(!r.ok) throw new Error('Error al leer datos guardados');
+  const d = await r.json();
+  return { key: d.key, value: JSON.stringify(d.value) };
+}
+async function storageSet(key, valueString){
+  const parsed = JSON.parse(valueString);
+  const r = await fetch('/api/data', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ key, value: parsed })
+  });
+  if(!r.ok) throw new Error('Error al guardar datos');
+  return r.json();
+}
+async function storageDelete(key){
+  const r = await fetch('/api/data?key=' + encodeURIComponent(key), { method:'DELETE' });
+  return r.ok;
+}
+
+// ---------- storage ----------
+async function loadIndex(){
+  try{
+    const r = await storageGet('prode-index');
+    prodeIndex = r ? JSON.parse(r.value) : [];
+  }catch(e){ prodeIndex = []; }
+}
+async function saveIndex(){
+  await storageSet('prode-index', JSON.stringify(prodeIndex));
+}
+async function loadProde(id){
+  try{
+    const r = await storageGet('prode-data:' + id);
+    return r ? JSON.parse(r.value) : null;
+  }catch(e){ return null; }
+}
+async function saveProde(){
+  if(!current) return;
+  await storageSet('prode-data:' + current.id, JSON.stringify(current));
+}
+
+function defaultProde(name){
+  return {
+    id: uid(),
+    name: name || 'Fecha sin nombre',
+    encabezado: 'EL PRODE QUE VIENE.',
+    cierre: 'CIERRA VIERNES 19.30.',
+    precio: '2 MIL PESOS.',
+    comodinesTexto: '5 COMODINES',
+    comodinesPermitidos: 5,
+    matches: [],
+    participants: {}
+  };
+}
+
+// ---------- fixture parsing ----------
+function parseFixtureText(text){
+  const lines = text.split('\n').map(l=>l.trim()).filter(Boolean);
+  const seps = [' – ', ' - ', ' vs ', ' VS ', ' Vs ', '–', '-'];
+  const matches = [];
+  for(const line of lines){
+    // strip leading numbering like "1--", "1-", "1)", "1."
+    let clean = line.replace(/^\d+\s*[-–.).]*\s*/,'').trim();
+    let teamA=null, teamB=null;
+    for(const sep of seps){
+      if(clean.includes(sep)){
+        const parts = clean.split(sep);
+        if(parts.length>=2){
+          teamA = parts[0].trim();
+          teamB = parts.slice(1).join(sep).trim();
+          break;
+        }
+      }
+    }
+    if(teamA && teamB){
+      matches.push({number: matches.length+1, teamA, teamB, golesA:null, golesB:null});
+    }
+  }
+  return matches;
+}
+
+// ---------- AI parsing of predictions ----------
+async function parsePredictionsWithAI(rawText, matches){
+  const fixtureList = matches.map(m=>`${m.number}: ${m.teamA} - ${m.teamB}`).join('\n');
+  const prompt = `Sos un asistente que extrae pronósticos de resultados de fútbol de un mensaje de WhatsApp.
+
+Partidos del fixture (numero: equipoA - equipoB):
+${fixtureList}
+
+Mensaje del participante:
+"""
+${rawText}
+"""
+
+Además, cada participante elige por su cuenta cuáles partidos son "comodín" (a veces lo indica con un asterisco, la letra C, la palabra "comodín"/"comodin", u otra marca al lado del pronóstico).
+
+Devolvé SOLAMENTE un objeto JSON (sin texto adicional, sin markdown, sin explicaciones) con este formato exacto:
+{"predicciones":[{"numero":1,"golesA":2,"golesB":1}], "comodines":[3,7]}
+
+Reglas:
+- "numero" es el número de partido según el fixture de arriba.
+- "golesA" son los goles del equipo que figura primero en ese partido del fixture, "golesB" los del que figura segundo.
+- Si el mensaje menciona los equipos en otro orden, igual asigná golesA/golesB según el orden del fixture, no según el orden del mensaje.
+- Si no podés identificar con confianza el resultado de un partido, no lo incluyas en "predicciones".
+- "comodines" es la lista de números de partido que el participante marcó como comodín. Si no marcó ninguno o no podés identificarlo con confianza, devolvé un array vacío.
+- No inventes partidos que no estén en el fixture.
+- Ignorá saludos, comentarios y emojis.`;
+
+  const response = await fetch("/api/parse", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt })
+  });
+  const data = await response.json();
+  if(!response.ok) throw new Error(data.error || 'Error del servidor al procesar con IA');
+  const textBlocks = (data.content || []).filter(b=>b.type==='text').map(b=>b.text).join('\n');
+  const cleaned = textBlocks.replace(/```json|```/g,'').trim();
+  const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+  if(!jsonMatch) throw new Error('No se pudo interpretar la respuesta de la IA');
+  const obj = JSON.parse(jsonMatch[0]);
+  return {
+    predicciones: Array.isArray(obj.predicciones) ? obj.predicciones : [],
+    comodines: Array.isArray(obj.comodines) ? obj.comodines : []
+  };
+}
+
+// ---------- scoring ----------
+function outcome(gA, gB){
+  if(gA > gB) return 'A';
+  if(gA < gB) return 'B';
+  return 'E';
+}
+function pointsFor(pred, real, isWildcard){
+  if(pred==null || real==null) return 0;
+  if(pred.golesA==null || pred.golesB==null || real.golesA==null || real.golesB==null) return 0;
+  let pts = 0;
+  if(pred.golesA===real.golesA && pred.golesB===real.golesB) pts = 3;
+  else if(outcome(pred.golesA,pred.golesB) === outcome(real.golesA,real.golesB)) pts = 1;
+  if(isWildcard) pts *= 2;
+  return pts;
+}
+function computeStandings(prode){
+  const rows = [];
+  for(const name of Object.keys(prode.participants)){
+    const participant = prode.participants[name];
+    const preds = participant.predicciones || [];
+    const comodines = participant.comodines || [];
+    let total = 0, exactos = 0, aciertos = 0, jugados = 0;
+    for(const m of prode.matches){
+      if(m.golesA==null || m.golesB==null) continue;
+      jugados++;
+      const p = preds.find(x=>x.numero===m.number);
+      if(!p) continue;
+      const isWildcard = comodines.includes(m.number);
+      const pts = pointsFor({golesA:p.golesA, golesB:p.golesB}, {golesA:m.golesA, golesB:m.golesB}, isWildcard);
+      if(pts>0){
+        if(p.golesA===m.golesA && p.golesB===m.golesB) exactos++;
+        else aciertos++;
+      }
+      total += pts;
+    }
+    rows.push({name, total, exactos, aciertos, jugados});
+  }
+  rows.sort((a,b)=>b.total-a.total);
+  return rows;
+}
+
+// ---------- rendering ----------
+function teamsUpper(s){ return (s||'').toUpperCase(); }
+
+function generateCopyText(prode){
+  let lines = [];
+  const headerParts = [prode.encabezado, prode.cierre, prode.precio, prode.comodinesTexto].filter(Boolean);
+  lines.push(headerParts.join(' '));
+  prode.matches.forEach(m=>{
+    lines.push(`${m.number}-- ${teamsUpper(m.teamA)} – ${teamsUpper(m.teamB)}`);
+  });
+  return lines.join('\n');
+}
+
+async function render(){
+  const app = $('#app');
+  if(!currentId){
+    app.innerHTML = `
+      <div class="topbar">
+        <div><h1>PRODE MANAGER</h1><div class="subtitle">Organizá tu prode y compartilo por WhatsApp</div></div>
+      </div>
+      <div class="empty">
+        <h2>Todavía no creaste ninguna fecha</h2>
+        <p class="muted">Creá tu primera fecha de prode para cargar los partidos.</p>
+        <div class="row-inline" style="justify-content:center;">
+          <input id="newName" type="text" placeholder="Nombre de la fecha (ej: Fecha 12)" style="min-width:220px;">
+          <button onclick="crearFecha()">Crear fecha</button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  const opts = prodeIndex.map(p=>`<option value="${p.id}" ${p.id===currentId?'selected':''}>${escapeHtml(p.name)}</option>`).join('');
+
+  app.innerHTML = `
+    <div class="topbar">
+      <div><h1>PRODE MANAGER</h1><div class="subtitle">${escapeHtml(current.name)}</div></div>
+      <div class="fecha-row">
+        <select id="fechaSelect" onchange="cambiarFecha(this.value)">${opts}</select>
+        <button class="ghost small" onclick="pedirNuevaFecha()">+ Nueva fecha</button>
+        <button class="danger small" onclick="borrarFecha()">Eliminar</button>
+      </div>
+    </div>
+    <nav class="tabs">
+      ${tabBtn('fixture','Fixture')}
+      ${tabBtn('compartir','Compartir')}
+      ${tabBtn('resultados','Resultados')}
+      ${tabBtn('participantes','Participantes')}
+      ${tabBtn('tabla','Tabla')}
+    </nav>
+    <div id="tabContent"></div>
+  `;
+  renderTab();
+}
+
+function tabBtn(id,label){
+  return `<button class="${activeTab===id?'active':''}" onclick="setTab('${id}')">${label}</button>`;
+}
+function setTab(id){ activeTab = id; renderTab(); }
+
+function renderTab(){
+  const c = $('#tabContent');
+  if(activeTab==='fixture') c.innerHTML = renderFixtureTab();
+  else if(activeTab==='compartir') c.innerHTML = renderCompartirTab();
+  else if(activeTab==='resultados') c.innerHTML = renderResultadosTab();
+  else if(activeTab==='participantes') c.innerHTML = renderParticipantesTab();
+  else if(activeTab==='tabla') c.innerHTML = renderTablaTab();
+}
+
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function renderFixtureTab(){
+  let matchRows = current.matches.map(m => `
+    <div class="match-row">
+      <div class="num-badge">${m.number}</div>
+      <input type="text" value="${escapeHtml(m.teamA)}" onchange="editMatch(${m.number},'teamA',this.value)">
+      <input type="text" value="${escapeHtml(m.teamB)}" onchange="editMatch(${m.number},'teamB',this.value)">
+      <div class="row-inline">
+        <button class="del-btn" onclick="deleteMatch(${m.number})">✕</button>
+      </div>
+    </div>
+  `).join('');
+
+  return `
+    <div class="card">
+      <h2>Datos de la fecha</h2>
+      <div class="row-inline">
+        <div class="col"><label>Encabezado</label><input type="text" id="fEncabezado" value="${escapeHtml(current.encabezado)}" onchange="editHeader('encabezado',this.value)" style="min-width:200px;"></div>
+        <div class="col"><label>Cierre</label><input type="text" id="fCierre" value="${escapeHtml(current.cierre)}" onchange="editHeader('cierre',this.value)" style="min-width:180px;"></div>
+        <div class="col"><label>Precio</label><input type="text" id="fPrecio" value="${escapeHtml(current.precio)}" onchange="editHeader('precio',this.value)" style="min-width:140px;"></div>
+        <div class="col"><label>Comodines (texto)</label><input type="text" id="fComodines" value="${escapeHtml(current.comodinesTexto)}" onchange="editHeader('comodinesTexto',this.value)" style="min-width:140px;"></div>
+        <div class="col"><label>Comodines por participante</label><input type="number" min="0" value="${current.comodinesPermitidos}" onchange="editHeader('comodinesPermitidos',parseInt(this.value,10)||0)" style="min-width:90px;"></div>
+      </div>
+      <p class="muted" style="font-size:0.82rem;margin-top:8px;">Cada participante elige cuáles partidos son su comodín (no se define acá en el fixture). Esta cantidad es solo de referencia para avisar si alguien marcó de más o de menos.</p>
+    </div>
+
+    <div class="card">
+      <h2>Cargar partidos en bloque</h2>
+      <p class="muted" style="font-size:0.85rem;">Pegá un partido por línea, por ejemplo: <span class="mono">ROSARIO CENTRAL - ALDOSIVI</span>. Se agregan al final del fixture actual.</p>
+      <textarea id="bulkFixture" placeholder="ROSARIO CENTRAL - ALDOSIVI&#10;BOCA - VELEZ&#10;..."></textarea>
+      <div class="row-inline" style="margin-top:8px;">
+        <button onclick="agregarBulk()">Agregar partidos</button>
+        <button class="ghost" onclick="vaciarFixture()">Vaciar fixture</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="flexbetween"><h2>Partidos (${current.matches.length})</h2><button class="small ghost" onclick="agregarMatchManual()">+ Agregar partido vacío</button></div>
+      ${current.matches.length ? matchRows : '<p class="muted">Todavía no cargaste partidos.</p>'}
+    </div>
+  `;
+}
+
+function renderCompartirTab(){
+  const text = generateCopyText(current);
+  return `
+    <div class="card">
+      <h2>Vista previa para WhatsApp</h2>
+      <div class="ticket">
+        <pre class="copytext">${escapeHtml(text)}</pre>
+      </div>
+      <div class="row-inline" style="margin-top:12px;">
+        <button onclick="copiarTexto()">Copiar texto</button>
+        <span class="muted" style="font-size:0.82rem;">Si el botón no copia automáticamente, seleccioná el texto de abajo y copiá manualmente.</span>
+      </div>
+      <textarea id="copyTextarea" style="margin-top:10px;min-height:220px;" readonly>${text}</textarea>
+    </div>
+  `;
+}
+
+function renderResultadosTab(){
+  if(!current.matches.length){
+    return `<div class="empty"><h2>No hay partidos cargados</h2><p class="muted">Andá a la pestaña Fixture para cargarlos.</p></div>`;
+  }
+  const rows = current.matches.map(m => `
+    <tr>
+      <td class="num-badge">${m.number}</td>
+      <td>${escapeHtml(m.teamA)}</td>
+      <td><input type="number" class="score-input" value="${m.golesA==null?'':m.golesA}" onchange="editResultado(${m.number},'golesA',this.value)"></td>
+      <td class="muted">–</td>
+      <td><input type="number" class="score-input" value="${m.golesB==null?'':m.golesB}" onchange="editResultado(${m.number},'golesB',this.value)"></td>
+      <td>${escapeHtml(m.teamB)}</td>
+    </tr>
+  `).join('');
+  return `
+    <div class="card">
+      <h2>Cargar resultados reales</h2>
+      <table>
+        <thead><tr><th>#</th><th>Local</th><th>G</th><th></th><th>G</th><th>Visitante</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderParticipantesTab(){
+  if(!current.matches.length){
+    return `<div class="empty"><h2>No hay partidos cargados</h2><p class="muted">Cargá el fixture antes de sumar participantes.</p></div>`;
+  }
+  const names = Object.keys(current.participants);
+  const blocks = names.map(name => {
+    const safeName = escapeHtml(name).replace(/'/g,"\\'");
+    const participant = current.participants[name];
+    const preds = participant.predicciones || [];
+    const comodines = participant.comodines || [];
+    const rows = current.matches.map(m=>{
+      const p = preds.find(x=>x.numero===m.number) || {golesA:'', golesB:''};
+      const isWc = comodines.includes(m.number);
+      return `<tr>
+        <td class="num-badge">${m.number}${isWc?'<span class="wc-tag">C</span>':''}</td>
+        <td>${escapeHtml(m.teamA)}</td>
+        <td><input type="number" class="score-input" value="${p.golesA===undefined||p.golesA===''?'':p.golesA}" onchange="editPrediccion('${safeName}',${m.number},'golesA',this.value)"></td>
+        <td class="muted">–</td>
+        <td><input type="number" class="score-input" value="${p.golesB===undefined||p.golesB===''?'':p.golesB}" onchange="editPrediccion('${safeName}',${m.number},'golesB',this.value)"></td>
+        <td>${escapeHtml(m.teamB)}</td>
+        <td><label class="chk"><input type="checkbox" ${isWc?'checked':''} onchange="toggleComodin('${safeName}',${m.number})"> Comodín</label></td>
+      </tr>`;
+    }).join('');
+    const countClass = comodines.length === current.comodinesPermitidos ? 'muted' : '';
+    return `
+      <div class="participant-block">
+        <div class="flexbetween">
+          <h3 style="font-size:1.1rem;">${escapeHtml(name)}</h3>
+          <button class="del-btn" onclick="borrarParticipante('${safeName}')">✕ Eliminar</button>
+        </div>
+        <p class="${countClass}" style="font-size:0.82rem;margin:4px 0 0;">Comodines elegidos: ${comodines.length}/${current.comodinesPermitidos}</p>
+        <table style="margin-top:8px;">
+          <thead><tr><th>#</th><th>Local</th><th>G</th><th></th><th>G</th><th>Visitante</th><th>Comodín</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="card">
+      <h2>Agregar pronósticos con IA</h2>
+      <div class="col" style="margin-bottom:8px;">
+        <label>Nombre del participante</label>
+        <input type="text" id="participantName" placeholder="Ej: Pablo">
+      </div>
+      <div class="col">
+        <label>Mensaje pegado de WhatsApp</label>
+        <textarea id="participantText" placeholder="1) 2-1&#10;2) 1-1&#10;3) 0-2 ..."></textarea>
+      </div>
+      <div class="row-inline" style="margin-top:8px;">
+        <button onclick="procesarConIA()" id="btnProcesarIA">Procesar con IA</button>
+        <span class="muted" id="iaStatus" style="font-size:0.82rem;"></span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Participantes cargados (${names.length})</h2>
+      ${names.length ? blocks : '<p class="muted">Todavía no cargaste pronósticos de nadie.</p>'}
+    </div>
+  `;
+}
+
+function renderTablaTab(){
+  const standings = computeStandings(current);
+  if(!standings.length){
+    return `<div class="empty"><h2>Todavía no hay participantes</h2><p class="muted">Sumalos desde la pestaña Participantes.</p></div>`;
+  }
+  const rows = standings.map((r,i)=>`
+    <tr>
+      <td class="mono ${i===0?'pos-1':''}">${i+1}</td>
+      <td>${escapeHtml(r.name)}</td>
+      <td class="mono">${r.total}</td>
+      <td class="muted mono">${r.exactos}</td>
+      <td class="muted mono">${r.aciertos}</td>
+      <td class="muted mono">${r.jugados}/${current.matches.length}</td>
+    </tr>
+  `).join('');
+  return `
+    <div class="card">
+      <h2>Tabla de posiciones</h2>
+      <table>
+        <thead><tr><th>Pos</th><th>Participante</th><th>Puntos</th><th>Exactos</th><th>Ganador</th><th>Jugados</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+// ---------- actions ----------
+async function crearFecha(){
+  const name = $('#newName').value.trim() || `Fecha ${prodeIndex.length+1}`;
+  const prode = defaultProde(name);
+  prodeIndex.push({id:prode.id, name:prode.name});
+  await saveIndex();
+  currentId = prode.id;
+  current = prode;
+  await saveProde();
+  activeTab = 'fixture';
+  render();
+}
+
+async function pedirNuevaFecha(){
+  const name = prompt('Nombre de la nueva fecha:', `Fecha ${prodeIndex.length+1}`);
+  if(name===null) return;
+  const prode = defaultProde(name.trim() || `Fecha ${prodeIndex.length+1}`);
+  prodeIndex.push({id:prode.id, name:prode.name});
+  await saveIndex();
+  currentId = prode.id;
+  current = prode;
+  await saveProde();
+  activeTab = 'fixture';
+  render();
+}
+
+async function cambiarFecha(id){
+  currentId = id;
+  current = await loadProde(id);
+  activeTab = 'fixture';
+  render();
+}
+
+async function borrarFecha(){
+  if(!confirm(`¿Eliminar "${current.name}" y todos sus datos? Esta acción no se puede deshacer.`)) return;
+  prodeIndex = prodeIndex.filter(p=>p.id!==currentId);
+  await saveIndex();
+  try{ await storageDelete('prode-data:'+currentId); }catch(e){}
+  if(prodeIndex.length){
+    currentId = prodeIndex[0].id;
+    current = await loadProde(currentId);
+  }else{
+    currentId = null; current = null;
+  }
+  render();
+}
+
+function editHeader(field, value){
+  current[field] = value;
+  saveProde();
+}
+
+function editMatch(number, field, value){
+  const m = current.matches.find(x=>x.number===number);
+  if(!m) return;
+  m[field] = value;
+  saveProde();
+  renderTab();
+}
+
+function deleteMatch(number){
+  current.matches = current.matches.filter(m=>m.number!==number);
+  current.matches.forEach((m,i)=>{ m.number = i+1; });
+  saveProde();
+  renderTab();
+}
+
+function agregarMatchManual(){
+  current.matches.push({number: current.matches.length+1, teamA:'', teamB:'', golesA:null, golesB:null});
+  saveProde();
+  renderTab();
+}
+
+function agregarBulk(){
+  const text = $('#bulkFixture').value;
+  const parsed = parseFixtureText(text);
+  const offset = current.matches.length;
+  parsed.forEach((m,i)=>{
+    m.number = offset + i + 1;
+    current.matches.push(m);
+  });
+  saveProde();
+  renderTab();
+  showToast(`${parsed.length} partidos agregados`);
+}
+
+function vaciarFixture(){
+  if(!confirm('¿Vaciar todos los partidos del fixture?')) return;
+  current.matches = [];
+  saveProde();
+  renderTab();
+}
+
+function editResultado(number, field, value){
+  const m = current.matches.find(x=>x.number===number);
+  if(!m) return;
+  m[field] = value===''? null : parseInt(value,10);
+  saveProde();
+}
+
+function editPrediccion(name, numero, field, value){
+  const participant = current.participants[name];
+  if(!participant) return;
+  const preds = participant.predicciones;
+  let p = preds.find(x=>x.numero===numero);
+  if(!p){ p = {numero}; preds.push(p); }
+  p[field] = value===''? null : parseInt(value,10);
+  saveProde();
+}
+
+function toggleComodin(name, numero){
+  const participant = current.participants[name];
+  if(!participant) return;
+  const idx = participant.comodines.indexOf(numero);
+  if(idx>=0) participant.comodines.splice(idx,1);
+  else participant.comodines.push(numero);
+  saveProde();
+  renderTab();
+}
+
+function borrarParticipante(name){
+  if(!confirm(`¿Eliminar a ${name}?`)) return;
+  delete current.participants[name];
+  saveProde();
+  renderTab();
+}
+
+async function procesarConIA(){
+  const name = $('#participantName').value.trim();
+  const text = $('#participantText').value.trim();
+  const statusEl = $('#iaStatus');
+  if(!name){ showToast('Falta el nombre del participante'); return; }
+  if(!text){ showToast('Falta pegar el mensaje'); return; }
+  statusEl.textContent = 'Procesando con IA...';
+  $('#btnProcesarIA').disabled = true;
+  try{
+    const parsed = await parsePredictionsWithAI(text, current.matches);
+    if(!current.participants[name]) current.participants[name] = {predicciones:[], comodines:[]};
+    const participant = current.participants[name];
+    const preds = participant.predicciones;
+    parsed.predicciones.forEach(item=>{
+      let p = preds.find(x=>x.numero===item.numero);
+      if(!p){ p = {numero:item.numero}; preds.push(p); }
+      p.golesA = item.golesA;
+      p.golesB = item.golesB;
+    });
+    if(parsed.comodines.length){
+      const set = new Set([...participant.comodines, ...parsed.comodines]);
+      participant.comodines = Array.from(set);
+    }
+    await saveProde();
+    const wcMsg = parsed.comodines.length ? ` (comodines detectados: ${parsed.comodines.join(', ')})` : '';
+    showToast(`Se cargaron ${parsed.predicciones.length} pronósticos de ${name}${wcMsg}`);
+    $('#participantText').value = '';
+    renderTab();
+  }catch(e){
+    showToast('Error al procesar con IA: ' + e.message);
+  }finally{
+    $('#btnProcesarIA').disabled = false;
+    if(statusEl) statusEl.textContent = '';
+  }
+}
+
+async function copiarTexto(){
+  const text = generateCopyText(current);
+  try{
+    await navigator.clipboard.writeText(text);
+    showToast('Copiado ✅');
+  }catch(e){
+    const ta = $('#copyTextarea');
+    ta.select();
+    document.execCommand('copy');
+    showToast('Copiado (manual) ✅');
+  }
+}
+
+// ---------- init ----------
+async function init(){
+  await loadIndex();
+  if(prodeIndex.length){
+    currentId = prodeIndex[0].id;
+    current = await loadProde(currentId);
+    if(!current){ current = defaultProde(prodeIndex[0].name); current.id = currentId; }
+  }
+  render();
+}
+init();
+</script>
+</body>
+</html>
