@@ -2,125 +2,211 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>PRODE Manager</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --pitch-dark:#0b2e22;
-    --pitch-mid:#0f3b2b;
-    --pitch-line:rgba(245,241,230,0.08);
-    --chalk:#f5f1e6;
-    --chalk-dim:#b9c9bf;
-    --amber:#ffb020;
-    --amber-dim:#8a6a2a;
-    --red:#d6544a;
-    --green-ok:#5fbf87;
+    --pitch-dark:#13151a;
+    --pitch-mid:#1a1e26;
+    --pitch-line:rgba(255,255,255,0.07);
+    --chalk:#e7e9ee;
+    --chalk-dim:#969faa;
+    --amber:#e0b04e;
+    --amber-soft:rgba(224,176,78,0.10);
+    --amber-dim:#a57a33;
+    --red:#d86452;
+    --green-ok:#8aa98f;
+    --tap:44px;
   }
-  *{box-sizing:border-box;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html{font-size:16px;}
   body{
     margin:0;
-    background:
-      repeating-linear-gradient(90deg, var(--pitch-line) 0 2px, transparent 2px 64px),
-      linear-gradient(180deg, var(--pitch-dark), var(--pitch-mid));
+    background:var(--pitch-dark);
     color:var(--chalk);
     font-family:'Inter',sans-serif;
     min-height:100vh;
+    -webkit-font-smoothing:antialiased;
   }
-  .wrap{max-width:900px;margin:0 auto;padding:20px 16px 60px;}
-  h1,h2,h3{font-family:'Bebas Neue',sans-serif;letter-spacing:0.03em;margin:0;}
-  h1{font-size:2.4rem;color:var(--amber);}
-  h2{font-size:1.5rem;color:var(--chalk);margin-bottom:10px;}
-  .subtitle{color:var(--chalk-dim);font-size:0.9rem;margin-top:2px;}
-  .topbar{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;border-bottom:2px solid var(--pitch-line);padding-bottom:14px;margin-bottom:18px;}
-  select,input,textarea,button{
+  .wrap{max-width:900px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top)) 14px calc(48px + env(safe-area-inset-bottom));}
+  h1,h2,h3{font-family:'Bebas Neue',sans-serif;letter-spacing:0.02em;margin:0;line-height:1.1;}
+  h1{font-size:1.9rem;color:var(--amber);font-weight:400;}
+  h2{font-size:1.35rem;color:var(--chalk);margin-bottom:12px;font-weight:400;}
+  h3{font-size:1.1rem;color:var(--chalk);font-weight:400;}
+  .subtitle{color:var(--chalk-dim);font-size:0.85rem;margin-top:3px;word-break:break-word;}
+  .topbar{display:flex;flex-direction:column;gap:12px;border-bottom:1px solid var(--pitch-line);padding-bottom:12px;margin-bottom:4px;}
+  .fecha-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .fecha-row select{flex:1 1 0;min-width:0;width:auto;}
+
+  input,select,textarea{
     font-family:'Inter',sans-serif;
-    background:rgba(245,241,230,0.05);
-    border:1px solid rgba(245,241,230,0.2);
+    background:rgba(255,255,255,0.045);
+    border:1px solid rgba(255,255,255,0.12);
     color:var(--chalk);
-    border-radius:6px;
-    padding:8px 10px;
-    font-size:0.92rem;
+    border-radius:8px;
+    padding:0 12px;
+    font-size:16px;
+    width:100%;
+    min-height:var(--tap);
+    transition:border-color .15s ease;
   }
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--amber-dim);}
   input::placeholder, textarea::placeholder{color:var(--chalk-dim);}
+  textarea{padding:10px 12px;min-height:100px;resize:vertical;line-height:1.4;}
+  input[type=checkbox]{width:20px;height:20px;min-height:20px;padding:0;accent-color:var(--amber);}
+
   button{
     cursor:pointer;
     background:var(--amber);
-    color:#1a1206;
-    font-weight:700;
+    color:#191510;
+    font-weight:600;
     border:none;
-    transition:transform .08s ease, filter .15s ease;
+    border-radius:8px;
+    min-height:var(--tap);
+    padding:0 18px;
+    font-size:16px;
+    transition:transform .08s ease, filter .15s ease, opacity .15s ease;
   }
-  button:hover{filter:brightness(1.08);}
+  button:hover{filter:brightness(1.06);}
   button:active{transform:scale(0.97);}
-  button.ghost{
-    background:transparent;
-    color:var(--chalk);
-    border:1px solid rgba(245,241,230,0.3);
-  }
+  button:disabled{opacity:.5;pointer-events:none;}
+  button.ghost{background:transparent;color:var(--chalk);border:1px solid rgba(255,255,255,0.18);}
+  button.ghost:hover{background:rgba(255,255,255,0.05);filter:none;}
   button.danger{background:var(--red);color:#fff;}
-  button.small{padding:5px 9px;font-size:0.78rem;}
-  .fecha-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-  nav.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:20px;border-bottom:1px solid var(--pitch-line);}
+  button.small{min-height:36px;padding:0 12px;font-size:0.85rem;border-radius:6px;}
+  .btn-block{width:100%;}
+  .del-btn{background:transparent;color:var(--red);border:none;min-width:36px;min-height:var(--tap);padding:0;font-size:1.1rem;border-radius:8px;}
+  .del-btn:hover{background:rgba(201,124,106,0.08);filter:none;}
+
+  nav.tabs{
+    display:flex;gap:2px;flex-wrap:nowrap;overflow-x:auto;
+    border-bottom:1px solid var(--pitch-line);
+    position:sticky;top:0;z-index:10;
+    background:rgba(19,21,26,0.96);
+    backdrop-filter:blur(6px);
+    margin:0 -14px 16px;padding:8px 14px 0;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  nav.tabs::-webkit-scrollbar{display:none;}
   nav.tabs button{
     background:transparent;color:var(--chalk-dim);border-radius:8px 8px 0 0;
-    padding:9px 16px;font-family:'Bebas Neue',sans-serif;font-size:1.05rem;letter-spacing:0.04em;
+    padding:0 15px;min-height:42px;flex:0 0 auto;white-space:nowrap;
+    font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.04em;
+    border-bottom:2px solid transparent;
   }
-  nav.tabs button.active{background:rgba(255,176,32,0.12);color:var(--amber);border-bottom:2px solid var(--amber);}
+  nav.tabs button:hover{color:var(--chalk);background:rgba(255,255,255,0.03);}
+  nav.tabs button.active{background:var(--amber-soft);color:var(--amber);border-bottom-color:var(--amber);}
+
   .card{
-    background:rgba(0,0,0,0.18);
+    background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
     border:1px solid var(--pitch-line);
-    border-radius:10px;
+    border-radius:12px;
     padding:16px;
-    margin-bottom:16px;
+    margin-bottom:14px;
   }
   .empty{
-    text-align:center;padding:50px 20px;color:var(--chalk-dim);
-    border:1px dashed rgba(245,241,230,0.25);border-radius:12px;
+    text-align:center;padding:44px 20px;color:var(--chalk-dim);
+    border:1px dashed rgba(255,255,255,0.16);border-radius:14px;
   }
-  .empty button{margin-top:14px;}
-  table{width:100%;border-collapse:collapse;}
-  th,td{padding:7px 8px;text-align:left;border-bottom:1px solid var(--pitch-line);font-size:0.9rem;}
-  th{color:var(--amber-dim);font-weight:600;text-transform:uppercase;font-size:0.72rem;letter-spacing:0.05em;}
+  .empty .col{max-width:340px;margin:16px auto 0;}
+  .col{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
+  .col:last-child{margin-bottom:0;}
+  .col label{font-size:0.72rem;color:var(--chalk-dim);text-transform:uppercase;letter-spacing:0.05em;font-weight:600;}
+  .row-inline{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .grid-form{display:grid;gap:12px;}
+  .flexbetween{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;}
+  .muted{color:var(--chalk-dim);}
+  .over-wc{color:var(--red);font-weight:600;}
   .mono{font-family:'JetBrains Mono',monospace;}
-  .match-row{display:grid;grid-template-columns:32px 1fr 1fr auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--pitch-line);}
-  .match-row input[type=text]{width:100%;}
+
   .num-badge{
-    font-family:'JetBrains Mono',monospace;color:var(--amber);font-weight:700;text-align:center;
+    font-family:'JetBrains Mono',monospace;color:var(--amber);font-weight:600;text-align:center;font-size:0.95rem;
   }
-  .wc-tag{font-size:0.68rem;background:var(--amber);color:#1a1206;padding:2px 6px;border-radius:20px;font-weight:700;margin-left:6px;}
-  label.chk{display:flex;align-items:center;gap:5px;font-size:0.78rem;color:var(--chalk-dim);white-space:nowrap;}
+  .wc-tag{
+    font-size:0.6rem;background:var(--amber);color:#191510;padding:1px 5px;border-radius:20px;font-weight:700;margin-left:3px;
+    display:inline-block;vertical-align:middle;
+  }
+  .sep{color:var(--chalk-dim);text-align:center;}
+
+  .match-row{display:grid;grid-template-columns:26px minmax(0,1fr) minmax(0,1fr) 36px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--pitch-line);}
+  .match-row input{min-width:0;}
+
+  .score-input{width:54px;min-width:54px;padding:0;text-align:center;font-family:'JetBrains Mono',monospace;font-size:1.15rem;font-weight:600;border-radius:8px;justify-self:center;}
+
+  .res-row{display:grid;grid-template-columns:26px minmax(0,1fr) 54px 12px 54px minmax(0,1fr);gap:6px;align-items:center;padding:10px 8px;margin:0 -8px;border-bottom:1px solid var(--pitch-line);}
+  .res-row.loaded{background:rgba(138,169,143,0.08);}
+  .res-row .team{font-size:0.92rem;line-height:1.2;overflow-wrap:anywhere;}
+  .res-row .score-input{justify-self:center;}
+
+  .pred-row{display:grid;grid-template-columns:26px minmax(0,1fr) 48px 12px 48px 42px;gap:6px;align-items:center;padding:9px 0;border-bottom:1px solid var(--pitch-line);}
+  .pred-row .teams{font-size:0.84rem;line-height:1.25;overflow-wrap:anywhere;color:var(--chalk);}
+  .pred-row .teams .vs{color:var(--chalk-dim);margin:0 4px;font-size:0.7rem;}
+  .chk{display:flex;align-items:center;justify-content:center;gap:2px;font-size:0.78rem;color:var(--chalk-dim);white-space:nowrap;min-height:var(--tap);cursor:pointer;}
+  .chk input{margin:0;}
+
+  .participant-block{border:1px solid var(--pitch-line);border-radius:10px;padding:12px;margin-bottom:12px;background:rgba(0,0,0,0.14);}
+  .participant-block h3{font-size:1.1rem;margin:0;}
+  .participant-head{display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer;user-select:none;}
+  .participant-head:hover{opacity:0.85;}
+  .ph-left{display:flex;align-items:center;gap:8px;min-width:0;}
+  .ph-chev{color:var(--amber);font-size:0.8rem;flex:0 0 auto;}
+  .ph-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;}
+  .ph-summary{font-size:0.72rem;color:var(--chalk-dim);white-space:nowrap;}
+
+  .stand-row{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 2px;border-bottom:1px solid var(--pitch-line);}
+  .stand-pos{
+    font-family:'JetBrains Mono',monospace;color:var(--chalk-dim);font-weight:700;text-align:center;
+    background:rgba(255,255,255,0.05);border-radius:8px;min-height:34px;display:flex;align-items:center;justify-content:center;
+  }
+  .stand-pos.pos-1{color:var(--amber);background:var(--amber-soft);}
+  .stand-main{min-width:0;}
+  .stand-name{font-weight:600;font-size:1rem;overflow-wrap:anywhere;}
+  .stand-sub{color:var(--chalk-dim);font-size:0.75rem;margin-top:3px;}
+  .stand-pts{font-size:1.5rem;font-weight:700;color:var(--amber);font-family:'JetBrains Mono',monospace;}
+
   .ticket{
-    background:repeating-linear-gradient(90deg, transparent, transparent 8px, rgba(245,241,230,0.4) 8px, rgba(245,241,230,0.4) 9px) top/100% 1px no-repeat,
-      linear-gradient(180deg,#0e3527,#0a2a1e);
-    border:1px solid rgba(245,241,230,0.25);
-    border-radius:8px;
-    padding:18px;
+    background:repeating-linear-gradient(90deg, transparent, transparent 8px, rgba(255,255,255,0.3) 8px, rgba(255,255,255,0.3) 9px) top/100% 1px no-repeat,
+      linear-gradient(180deg,#191c23,#14161c);
+    border:1px solid rgba(255,255,255,0.13);
+    border-radius:10px;
+    padding:16px;
     position:relative;
+    overflow:hidden;
   }
   .ticket::before, .ticket::after{
     content:"";position:absolute;width:18px;height:18px;background:var(--pitch-dark);border-radius:50%;
     top:50%;transform:translateY(-50%);
   }
   .ticket::before{left:-9px;} .ticket::after{right:-9px;}
-  pre.copytext{white-space:pre-wrap;font-family:'JetBrains Mono',monospace;font-size:0.88rem;line-height:1.5;color:var(--chalk);}
-  textarea{width:100%;min-height:90px;resize:vertical;}
-  .row-inline{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
-  .col{display:flex;flex-direction:column;gap:4px;}
-  .col label{font-size:0.72rem;color:var(--chalk-dim);text-transform:uppercase;letter-spacing:0.04em;}
-  .score-input{width:52px;text-align:center;}
-  .participant-block{border:1px solid var(--pitch-line);border-radius:8px;padding:12px;margin-bottom:12px;}
-  .pos-1{color:var(--amber);}
+  pre.copytext{white-space:pre-wrap;word-break:break-word;font-family:'JetBrains Mono',monospace;font-size:0.86rem;line-height:1.5;color:var(--chalk);margin:0;}
+  textarea.readonly-copy{min-height:200px;overflow-wrap:anywhere;word-break:break-word;font-family:'JetBrains Mono',monospace;font-size:0.86rem;line-height:1.5;}
+
   .toast{
-    position:fixed;bottom:18px;left:50%;transform:translateX(-50%);
-    background:var(--green-ok);color:#0a2a1e;padding:9px 18px;border-radius:20px;font-weight:700;
-    font-size:0.85rem;box-shadow:0 4px 14px rgba(0,0,0,0.3);z-index:99;opacity:0;transition:opacity .25s ease;pointer-events:none;
+    position:fixed;bottom:calc(18px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);
+    background:var(--green-ok);color:#14161a;padding:10px 18px;border-radius:18px;font-weight:600;
+    font-size:0.85rem;box-shadow:0 4px 16px rgba(0,0,0,0.4);z-index:99;opacity:0;transition:opacity .25s ease;pointer-events:none;
+    max-width:92vw;text-align:center;
   }
   .toast.show{opacity:1;}
-  .muted{color:var(--chalk-dim);}
-  .flexbetween{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
-  .del-btn{background:transparent;color:var(--red);border:none;font-size:1rem;padding:2px 6px;}
   hr.sep{border:none;border-top:1px solid var(--pitch-line);margin:14px 0;}
+
+  @media (min-width:720px){
+    .wrap{padding:24px 24px 60px;}
+    .topbar{flex-direction:row;justify-content:space-between;align-items:flex-end;padding-bottom:14px;margin-bottom:16px;}
+    h1{font-size:2.2rem;}
+    h2{font-size:1.4rem;}
+    nav.tabs{margin:0 -24px 18px;padding:8px 24px 0;}
+    .fecha-row select{flex:0 1 auto;}
+    .grid-form{grid-template-columns:repeat(2,1fr);}
+    .card{padding:18px;}
+    .match-row{gap:12px;padding:10px 0;}
+    .res-row{gap:10px;}
+    .pred-row{gap:10px;}
+    .btn-block{width:auto;}
+  }
 </style>
 </head>
 <body>
@@ -133,6 +219,8 @@ let currentId = null;
 let current = null; // full prode data object
 let activeTab = 'fixture';
 let aiBusyName = null;
+let previewText = '';
+let participantesAbiertos = new Set();
 
 const $ = (sel, root=document) => root.querySelector(sel);
 
@@ -230,9 +318,190 @@ function parseFixtureText(text){
 }
 
 // ---------- AI parsing of predictions ----------
+function extractPredictionsLenient(text){
+  const preds = [];
+  const arrMatch = text.match(/"predicciones"\s*:\s*\[([\s\S]*?)\]/);
+  const body = arrMatch ? arrMatch[1] : text;
+  const objRe = /\{\s*"numero"\s*:\s*(\d+)([\s\S]*?)\}/g;
+  let m;
+  while((m = objRe.exec(body)) !== null){
+    const numero = Number(m[1]);
+    const a = m[2].match(/"golesA"\s*:\s*(-?\d+)/);
+    const b = m[2].match(/"golesB"\s*:\s*(-?\d+)/);
+    if(a && b) preds.push({ numero, golesA: Number(a[1]), golesB: Number(b[1]) });
+  }
+  const com = [];
+  const cm = text.match(/"comodines"\s*:\s*\[([\s\S]*?)\]/);
+  if(cm){
+    const nums = cm[1].match(/-?\d+/g) || [];
+    for(const n of nums){
+      const num = Number(n);
+      if(!com.includes(num)) com.push(num);
+    }
+  }
+  return { predicciones: preds, comodines: com };
+}
+
+function parseModelJSON(text){
+  const cleaned = (text||'').replace(/```json|```/g,'').trim();
+  const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+  if(!jsonMatch){
+    const lenient = extractPredictionsLenient(cleaned);
+    if(lenient.predicciones.length) return lenient;
+    throw new Error('La IA no devolvió un objeto JSON válido. Respuesta (primeros 400 caracteres): ' + cleaned.slice(0,400));
+  }
+  const raw = jsonMatch[0];
+  const variants = [
+    raw,
+    raw.replace(/,\s*([}\]])/g,'$1'),
+    raw.replace(/([}\]])\s*([{\[])/g,'$1,$2'),
+    raw.replace(/,\s*([}\]])/g,'$1').replace(/([}\]])\s*([{\[])/g,'$1,$2')
+  ];
+  let firstError = null;
+  for(const v of variants){
+    try{ return JSON.parse(v); }catch(e){ if(!firstError) firstError = e.message; }
+  }
+  const lenient = extractPredictionsLenient(raw);
+  if(lenient.predicciones.length || lenient.comodines.length) return lenient;
+  throw new Error('La IA devolvió JSON inválido (' + firstError + '). Respuesta (' + raw.length + ' caracteres, primeros 400): ' + raw.slice(0,400));
+}
+
+function normalizePredictionsData(obj){
+  const out = { predicciones: [], comodines: [] };
+  if(Array.isArray(obj.predicciones)){
+    const seen = new Set();
+    for(const item of obj.predicciones){
+      if(!item || typeof item !== 'object' || !Number.isFinite(Number(item.numero))) continue;
+      const numero = Number(item.numero);
+      if(seen.has(numero)) continue;
+      seen.add(numero);
+      out.predicciones.push({
+        numero,
+        golesA: Number.isFinite(Number(item.golesA)) ? Number(item.golesA) : null,
+        golesB: Number.isFinite(Number(item.golesB)) ? Number(item.golesB) : null
+      });
+    }
+  }
+  if(Array.isArray(obj.comodines)){
+    const seen = new Set();
+    for(const n of obj.comodines){
+      const num = Number(n);
+      if(Number.isFinite(num) && !seen.has(num)){ seen.add(num); out.comodines.push(num); }
+    }
+  }
+  return out;
+}
+
+// ---------- deterministic local parsing (no AI, no quota) ----------
+function normText(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim(); }
+
+function splitTeamScore(text, teamNames){
+  const t = normText(text);
+  let bestName = null, bestLen = 0;
+  for(const name of teamNames){
+    const n = normText(name);
+    if(t.startsWith(n) && n.length > bestLen){ bestName = name; bestLen = n.length; }
+  }
+  if(!bestName) return { team:null, score:null };
+  const rest = t.slice(bestLen).trim();
+  const sm = rest.match(/^(\d+)$/);
+  return { team:bestName, score: sm ? Number(sm[1]) : null };
+}
+
+function findMatchByTeams(leftName, rightName, matches){
+  const a = normText(leftName), b = normText(rightName);
+  for(const m of matches){
+    if(normText(m.teamA)===a && normText(m.teamB)===b) return { numero:m.number, swap:false };
+  }
+  for(const m of matches){
+    if(normText(m.teamA)===b && normText(m.teamB)===a) return { numero:m.number, swap:true };
+  }
+  return null;
+}
+
+function parsePredictionsLocal(rawText, matches){
+  const byNum = new Map();
+  const comos = new Set();
+  const teamNames = [];
+  for(const m of matches){ teamNames.push(m.teamA); teamNames.push(m.teamB); }
+  const lines = rawText.split('\n').map(l=>l.trim()).filter(Boolean);
+  let inOrder = 1;
+
+  for(const rawLine of lines){
+    if(!/\d/.test(rawLine)) continue;
+    let line = rawLine;
+    const isWc = /comod[ií]n|\*|(^|\s)[Cc](\s|$)/i.test(line);
+    line = line.replace(/\.*\s*comod[ií]n\s*/gi,'').replace(/\*/g,'').replace(/(^|\s)[Cc](\s|$)/g,'$1$2').replace(/[.\s]+$/,'').trim();
+    if(!line) continue;
+
+    let numero = null;
+    let body = line;
+    const numMatch = line.match(/^(\d{1,2})\s*[-–.)]{1,2}(?=\s)/);
+    if(numMatch){
+      numero = Number(numMatch[1]);
+      body = line.slice(numMatch[0].length).trim();
+    }
+
+    let ga = null, gb = null;
+
+    const parts = body.split(/\s*[=–-]\s*/).map(s=>s.trim()).filter(Boolean);
+    if(parts.length === 2 && /^\d+$/.test(parts[0]) && /^\d+$/.test(parts[1])){
+      ga = Number(parts[0]); gb = Number(parts[1]);
+    }else if(parts.length === 2){
+      const left = splitTeamScore(parts[0], teamNames);
+      const right = splitTeamScore(parts[1], teamNames);
+      if(left.team && right.team && typeof left.score === 'number' && typeof right.score === 'number'){
+        ga = left.score; gb = right.score;
+        const mt = findMatchByTeams(left.team, right.team, matches);
+        if(mt){
+          numero = mt.numero;
+          if(mt.swap){ const t = ga; ga = gb; gb = t; }
+        }
+      }
+    }
+
+    if(ga === null){
+      const scores = [...body.matchAll(/(\d+)\s*[-–:x=]\s*(\d+)/g)];
+      if(scores.length){
+        for(const s of scores){
+          const n = numero || inOrder++;
+          if(n >= 1 && n <= matches.length){
+            byNum.set(n, { numero:n, golesA:Number(s[1]), golesB:Number(s[2]) });
+            if(isWc) comos.add(n);
+          }
+        }
+        continue;
+      }
+    }
+
+    if(ga === null){
+      const sepIdx = body.search(/[=–-]/);
+      if(sepIdx >= 0){
+        const leftP = body.slice(0, sepIdx);
+        const rightP = body.slice(sepIdx).replace(/^[=–-\s]+/,'');
+        const ln = leftP.match(/(\d+)\s*$/);
+        const rn = rightP.match(/(\d+)\s*$/);
+        if(ln && rn){ ga = Number(ln[1]); gb = Number(rn[1]); }
+      }
+    }
+
+    if(ga === null) continue;
+    const n = numero || inOrder++;
+    if(n >= 1 && n <= matches.length){
+      byNum.set(n, { numero:n, golesA:ga, golesB:gb });
+      if(isWc) comos.add(n);
+    }
+  }
+
+  return {
+    predicciones: Array.from(byNum.values()).sort((a,b)=>a.numero-b.numero),
+    comodines: Array.from(comos).sort((a,b)=>a-b)
+  };
+}
+
 async function parsePredictionsWithAI(rawText, matches){
   const fixtureList = matches.map(m=>`${m.number}: ${m.teamA} - ${m.teamB}`).join('\n');
-  const prompt = `Sos un asistente que extrae pronósticos de resultados de fútbol de un mensaje de WhatsApp.
+  const prompt = `Sos un asistente que extrae pronósticos de resultados de fútbol de un mensaje de WhatsApp y los devuelve como JSON.
 
 Partidos del fixture (numero: equipoA - equipoB):
 ${fixtureList}
@@ -242,19 +511,24 @@ Mensaje del participante:
 ${rawText}
 """
 
-Además, cada participante elige por su cuenta cuáles partidos son "comodín" (a veces lo indica con un asterisco, la letra C, la palabra "comodín"/"comodin", u otra marca al lado del pronóstico).
+El mensaje es una lista de pronósticos. Cada línea puede tener el número de partido (1, 1), 1--, 1., 1-), los equipos, el resultado y a veces la marca COMODIN (o comodín, C, *, negrita).
+
+EJEMPLO: si el mensaje dice "1-- ROSARIO CENTRAL 2 – ALDOSIVI 0 COMODIN", entonces numero=1, golesA=2, golesB=0, y el partido 1 va también en "comodines".
 
 Devolvé SOLAMENTE un objeto JSON (sin texto adicional, sin markdown, sin explicaciones) con este formato exacto:
 {"predicciones":[{"numero":1,"golesA":2,"golesB":1}], "comodines":[3,7]}
 
 Reglas:
 - "numero" es el número de partido según el fixture de arriba.
-- "golesA" son los goles del equipo que figura primero en ese partido del fixture, "golesB" los del que figura segundo.
-- Si el mensaje menciona los equipos en otro orden, igual asigná golesA/golesB según el orden del fixture, no según el orden del mensaje.
-- Si no podés identificar con confianza el resultado de un partido, no lo incluyas en "predicciones".
-- "comodines" es la lista de números de partido que el participante marcó como comodín. Si no marcó ninguno o no podés identificarlo con confianza, devolvé un array vacío.
+- "golesA" son los goles del equipo que figura primero en ese partido del fixture, "golesB" los del que figura segundo. Aunque el mensaje escriba los equipos en otro orden, usá el orden del fixture.
+- Incluí en "predicciones" TODOS los partidos del mensaje que tengan un resultado numérico claro. No omitas ninguno: si un partido tiene un resultado, incluílo. Es preferible un error puntual antes que dejar un partido afuera.
+- El resultado puede escribirse como "2 - 1", "2-1", "2:1" o "2 1". Los números que parecen goles van al equipo que los tiene al lado en el mensaje.
+- Si el mensaje no tiene número pero sí los equipos, buscá esos equipos en el fixture para asignar el número correcto.
+- Si el mensaje no tiene ni número ni equipos, asigná los resultados en el orden en que aparecen (el primero es el partido 1, el segundo el partido 2, etc.).
+- "comodines" es la lista de números que el participante marcó como comodín (COMODIN, comodín, C, *, negrita, esté antes o después del resultado). Incluí TODOS los que encuentres.
 - No inventes partidos que no estén en el fixture.
-- Ignorá saludos, comentarios y emojis.`;
+- Ignorá saludos, comentarios, nombres propios y emojis.
+- El JSON debe ser válido: cada elemento del array separado por coma, sin comas finales.`;
 
   const response = await fetch("/api/parse", {
     method: "POST",
@@ -262,16 +536,16 @@ Reglas:
     body: JSON.stringify({ prompt })
   });
   const data = await response.json();
-  if(!response.ok) throw new Error(data.error || 'Error del servidor al procesar con IA');
+  if(!response.ok){
+    const err = data.error || 'Error del servidor al procesar con IA';
+    if(/429|quota|rate|resource.?exhausted|exceeded|limit/i.test(err)){
+      throw new Error('Se excedió el límite diario de la IA gratuita. Probá de nuevo más tarde o cargá los pronósticos manualmente.');
+    }
+    throw new Error(err);
+  }
   const textBlocks = (data.content || []).filter(b=>b.type==='text').map(b=>b.text).join('\n');
-  const cleaned = textBlocks.replace(/```json|```/g,'').trim();
-  const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-  if(!jsonMatch) throw new Error('No se pudo interpretar la respuesta de la IA');
-  const obj = JSON.parse(jsonMatch[0]);
-  return {
-    predicciones: Array.isArray(obj.predicciones) ? obj.predicciones : [],
-    comodines: Array.isArray(obj.comodines) ? obj.comodines : []
-  };
+  const obj = parseModelJSON(textBlocks);
+  return normalizePredictionsData(obj);
 }
 
 // ---------- scoring ----------
@@ -291,17 +565,20 @@ function pointsFor(pred, real, isWildcard){
 }
 function computeStandings(prode){
   const rows = [];
+  const permitidos = prode.comodinesPermitidos || 0;
   for(const name of Object.keys(prode.participants)){
     const participant = prode.participants[name];
     const preds = participant.predicciones || [];
-    const comodines = participant.comodines || [];
+    const wildcards = new Set(
+      (participant.comodines || []).slice().sort((a,b)=>a-b).slice(0, Math.max(0, permitidos))
+    );
     let total = 0, exactos = 0, aciertos = 0, jugados = 0;
     for(const m of prode.matches){
       if(m.golesA==null || m.golesB==null) continue;
       jugados++;
       const p = preds.find(x=>x.numero===m.number);
       if(!p) continue;
-      const isWildcard = comodines.includes(m.number);
+      const isWildcard = wildcards.has(m.number);
       const pts = pointsFor({golesA:p.golesA, golesB:p.golesB}, {golesA:m.golesA, golesB:m.golesB}, isWildcard);
       if(pts>0){
         if(p.golesA===m.golesA && p.golesB===m.golesB) exactos++;
@@ -320,8 +597,7 @@ function teamsUpper(s){ return (s||'').toUpperCase(); }
 
 function generateCopyText(prode){
   let lines = [];
-  const headerParts = [prode.encabezado, prode.cierre, prode.precio, prode.comodinesTexto].filter(Boolean);
-  lines.push(headerParts.join(' '));
+  if(prode.encabezado) lines.push(prode.encabezado);
   prode.matches.forEach(m=>{
     lines.push(`${m.number}-- ${teamsUpper(m.teamA)} – ${teamsUpper(m.teamB)}`);
   });
@@ -338,8 +614,8 @@ async function render(){
       <div class="empty">
         <h2>Todavía no creaste ninguna fecha</h2>
         <p class="muted">Creá tu primera fecha de prode para cargar los partidos.</p>
-        <div class="row-inline" style="justify-content:center;">
-          <input id="newName" type="text" placeholder="Nombre de la fecha (ej: Fecha 12)" style="min-width:220px;">
+        <div class="col">
+          <input id="newName" type="text" placeholder="Nombre de la fecha (ej: Fecha 12)">
           <button onclick="crearFecha()">Crear fecha</button>
         </div>
       </div>
@@ -351,34 +627,45 @@ async function render(){
 
   app.innerHTML = `
     <div class="topbar">
-      <div><h1>PRODE MANAGER</h1><div class="subtitle">${escapeHtml(current.name)}</div></div>
+      <div><h1>PRODE MANAGER</h1></div>
       <div class="fecha-row">
         <select id="fechaSelect" onchange="cambiarFecha(this.value)">${opts}</select>
         <button class="ghost small" onclick="pedirNuevaFecha()">+ Nueva fecha</button>
         <button class="danger small" onclick="borrarFecha()">Eliminar</button>
       </div>
     </div>
-    <nav class="tabs">
+    <nav class="tabs" id="tabsNav">
       ${tabBtn('fixture','Fixture')}
-      ${tabBtn('compartir','Compartir')}
       ${tabBtn('resultados','Resultados')}
       ${tabBtn('participantes','Participantes')}
       ${tabBtn('tabla','Tabla')}
     </nav>
     <div id="tabContent"></div>
   `;
+  if(current) previewText = generateCopyText(current);
   renderTab();
 }
 
 function tabBtn(id,label){
   return `<button class="${activeTab===id?'active':''}" onclick="setTab('${id}')">${label}</button>`;
 }
-function setTab(id){ activeTab = id; renderTab(); }
+function setTab(id){
+  activeTab = id;
+  const nav = $('#tabsNav');
+  if(nav){
+    nav.innerHTML = [
+      ['fixture','Fixture'],
+      ['resultados','Resultados'],
+      ['participantes','Participantes'],
+      ['tabla','Tabla']
+    ].map(([tid,label])=>`<button class="${activeTab===tid?'active':''}" onclick="setTab('${tid}')">${label}</button>`).join('');
+  }
+  renderTab();
+}
 
 function renderTab(){
   const c = $('#tabContent');
   if(activeTab==='fixture') c.innerHTML = renderFixtureTab();
-  else if(activeTab==='compartir') c.innerHTML = renderCompartirTab();
   else if(activeTab==='resultados') c.innerHTML = renderResultadosTab();
   else if(activeTab==='participantes') c.innerHTML = renderParticipantesTab();
   else if(activeTab==='tabla') c.innerHTML = renderTablaTab();
@@ -392,34 +679,32 @@ function renderFixtureTab(){
   let matchRows = current.matches.map(m => `
     <div class="match-row">
       <div class="num-badge">${m.number}</div>
-      <input type="text" value="${escapeHtml(m.teamA)}" onchange="editMatch(${m.number},'teamA',this.value)">
-      <input type="text" value="${escapeHtml(m.teamB)}" onchange="editMatch(${m.number},'teamB',this.value)">
-      <div class="row-inline">
-        <button class="del-btn" onclick="deleteMatch(${m.number})">✕</button>
-      </div>
+      <input type="text" value="${escapeHtml(m.teamA)}" placeholder="Equipo local" onchange="editMatch(${m.number},'teamA',this.value)">
+      <input type="text" value="${escapeHtml(m.teamB)}" placeholder="Equipo visitante" onchange="editMatch(${m.number},'teamB',this.value)">
+      <button class="del-btn" onclick="deleteMatch(${m.number})">✕</button>
     </div>
   `).join('');
 
   return `
     <div class="card">
       <h2>Datos de la fecha</h2>
-      <div class="row-inline">
-        <div class="col"><label>Encabezado</label><input type="text" id="fEncabezado" value="${escapeHtml(current.encabezado)}" onchange="editHeader('encabezado',this.value)" style="min-width:200px;"></div>
-        <div class="col"><label>Cierre</label><input type="text" id="fCierre" value="${escapeHtml(current.cierre)}" onchange="editHeader('cierre',this.value)" style="min-width:180px;"></div>
-        <div class="col"><label>Precio</label><input type="text" id="fPrecio" value="${escapeHtml(current.precio)}" onchange="editHeader('precio',this.value)" style="min-width:140px;"></div>
-        <div class="col"><label>Comodines (texto)</label><input type="text" id="fComodines" value="${escapeHtml(current.comodinesTexto)}" onchange="editHeader('comodinesTexto',this.value)" style="min-width:140px;"></div>
-        <div class="col"><label>Comodines por participante</label><input type="number" min="0" value="${current.comodinesPermitidos}" onchange="editHeader('comodinesPermitidos',parseInt(this.value,10)||0)" style="min-width:90px;"></div>
+      <div class="grid-form">
+        <div class="col"><label>Encabezado</label><input type="text" id="fEncabezado" value="${escapeHtml(current.encabezado)}" onchange="editHeader('encabezado',this.value)"></div>
+        <div class="col"><label>Comodines por participante</label><input type="number" inputmode="numeric" min="0" value="${current.comodinesPermitidos}" onchange="editHeader('comodinesPermitidos',parseInt(this.value,10)||0)"></div>
       </div>
-      <p class="muted" style="font-size:0.82rem;margin-top:8px;">Cada participante elige cuáles partidos son su comodín (no se define acá en el fixture). Esta cantidad es solo de referencia para avisar si alguien marcó de más o de menos.</p>
+      <div class="col" style="margin-top:12px;">
+        <button class="btn-block" onclick="cargarVistaPrevia()">Cargar vista previa para WhatsApp</button>
+      </div>
+      <p class="muted" style="font-size:0.82rem;margin-top:12px;">Cada participante elige cuáles partidos son su comodín (no se define acá en el fixture). Esta cantidad es solo de referencia para avisar si alguien marcó de más o de menos.</p>
     </div>
 
     <div class="card">
       <h2>Cargar partidos en bloque</h2>
       <p class="muted" style="font-size:0.85rem;">Pegá un partido por línea, por ejemplo: <span class="mono">ROSARIO CENTRAL - ALDOSIVI</span>. Se agregan al final del fixture actual.</p>
       <textarea id="bulkFixture" placeholder="ROSARIO CENTRAL - ALDOSIVI&#10;BOCA - VELEZ&#10;..."></textarea>
-      <div class="row-inline" style="margin-top:8px;">
-        <button onclick="agregarBulk()">Agregar partidos</button>
-        <button class="ghost" onclick="vaciarFixture()">Vaciar fixture</button>
+      <div class="row-inline" style="margin-top:10px;">
+        <button class="btn-block" onclick="agregarBulk()">Agregar partidos</button>
+        <button class="ghost btn-block" onclick="vaciarFixture()">Vaciar fixture</button>
       </div>
     </div>
 
@@ -427,22 +712,15 @@ function renderFixtureTab(){
       <div class="flexbetween"><h2>Partidos (${current.matches.length})</h2><button class="small ghost" onclick="agregarMatchManual()">+ Agregar partido vacío</button></div>
       ${current.matches.length ? matchRows : '<p class="muted">Todavía no cargaste partidos.</p>'}
     </div>
-  `;
-}
 
-function renderCompartirTab(){
-  const text = generateCopyText(current);
-  return `
     <div class="card">
       <h2>Vista previa para WhatsApp</h2>
       <div class="ticket">
-        <pre class="copytext">${escapeHtml(text)}</pre>
+        <pre class="copytext" id="previewText">${escapeHtml(previewText)}</pre>
       </div>
-      <div class="row-inline" style="margin-top:12px;">
-        <button onclick="copiarTexto()">Copiar texto</button>
-        <span class="muted" style="font-size:0.82rem;">Si el botón no copia automáticamente, seleccioná el texto de abajo y copiá manualmente.</span>
+      <div class="col" style="margin-top:12px;">
+        <button class="btn-block" onclick="copiarTexto()">Copiar texto</button>
       </div>
-      <textarea id="copyTextarea" style="margin-top:10px;min-height:220px;" readonly>${text}</textarea>
     </div>
   `;
 }
@@ -451,23 +729,24 @@ function renderResultadosTab(){
   if(!current.matches.length){
     return `<div class="empty"><h2>No hay partidos cargados</h2><p class="muted">Andá a la pestaña Fixture para cargarlos.</p></div>`;
   }
-  const rows = current.matches.map(m => `
-    <tr>
-      <td class="num-badge">${m.number}</td>
-      <td>${escapeHtml(m.teamA)}</td>
-      <td><input type="number" class="score-input" value="${m.golesA==null?'':m.golesA}" onchange="editResultado(${m.number},'golesA',this.value)"></td>
-      <td class="muted">–</td>
-      <td><input type="number" class="score-input" value="${m.golesB==null?'':m.golesB}" onchange="editResultado(${m.number},'golesB',this.value)"></td>
-      <td>${escapeHtml(m.teamB)}</td>
-    </tr>
-  `).join('');
+  const cargados = current.matches.filter(m=>m.golesA!=null && m.golesB!=null).length;
+  const rows = current.matches.map(m => {
+    const loaded = m.golesA!=null && m.golesB!=null;
+    return `
+    <div class="res-row ${loaded?'loaded':''}">
+      <div class="num-badge">${m.number}</div>
+      <div class="team">${escapeHtml(m.teamA)}</div>
+      <input type="number" inputmode="numeric" class="score-input" value="${m.golesA==null?'':m.golesA}" placeholder="0" onchange="editResultado(${m.number},'golesA',this.value)">
+      <div class="sep">–</div>
+      <input type="number" inputmode="numeric" class="score-input" value="${m.golesB==null?'':m.golesB}" placeholder="0" onchange="editResultado(${m.number},'golesB',this.value)">
+      <div class="team">${escapeHtml(m.teamB)}</div>
+    </div>`;
+  }).join('');
   return `
     <div class="card">
-      <h2>Cargar resultados reales</h2>
-      <table>
-        <thead><tr><th>#</th><th>Local</th><th>G</th><th></th><th>G</th><th>Visitante</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
+      <div class="flexbetween"><h2>Cargar resultados reales</h2><span class="muted" style="font-size:0.82rem;">${cargados}/${current.matches.length} cargados</span></div>
+      <p class="muted" style="font-size:0.82rem;">Ingresá los goles reales de cada partido.</p>
+      ${rows}
     </div>
   `;
 }
@@ -485,28 +764,38 @@ function renderParticipantesTab(){
     const rows = current.matches.map(m=>{
       const p = preds.find(x=>x.numero===m.number) || {golesA:'', golesB:''};
       const isWc = comodines.includes(m.number);
-      return `<tr>
-        <td class="num-badge">${m.number}${isWc?'<span class="wc-tag">C</span>':''}</td>
-        <td>${escapeHtml(m.teamA)}</td>
-        <td><input type="number" class="score-input" value="${p.golesA===undefined||p.golesA===''?'':p.golesA}" onchange="editPrediccion('${safeName}',${m.number},'golesA',this.value)"></td>
-        <td class="muted">–</td>
-        <td><input type="number" class="score-input" value="${p.golesB===undefined||p.golesB===''?'':p.golesB}" onchange="editPrediccion('${safeName}',${m.number},'golesB',this.value)"></td>
-        <td>${escapeHtml(m.teamB)}</td>
-        <td><label class="chk"><input type="checkbox" ${isWc?'checked':''} onchange="toggleComodin('${safeName}',${m.number})"> Comodín</label></td>
-      </tr>`;
+      return `<div class="pred-row">
+        <div class="num-badge">${m.number}${isWc?'<span class="wc-tag">C</span>':''}</div>
+        <div class="teams">${escapeHtml(m.teamA)}<span class="vs">vs</span>${escapeHtml(m.teamB)}</div>
+        <input type="number" inputmode="numeric" class="score-input" value="${p.golesA===undefined||p.golesA===''?'':p.golesA}" placeholder="0" onchange="editPrediccion('${safeName}',${m.number},'golesA',this.value)">
+        <div class="sep">–</div>
+        <input type="number" inputmode="numeric" class="score-input" value="${p.golesB===undefined||p.golesB===''?'':p.golesB}" placeholder="0" onchange="editPrediccion('${safeName}',${m.number},'golesB',this.value)">
+        <label class="chk" title="Comodín"><input type="checkbox" ${isWc?'checked':''} onchange="toggleComodin('${safeName}',${m.number})">C</label>
+      </div>`;
     }).join('');
-    const countClass = comodines.length === current.comodinesPermitidos ? 'muted' : '';
+    const permitidos = current.comodinesPermitidos || 0;
+    const overWc = comodines.length > permitidos;
+    const countClass = overWc ? 'over-wc' : (comodines.length === permitidos ? 'muted' : '');
+    const countText = overWc
+      ? `Comodines elegidos: ${comodines.length}/${permitidos} — excede el máximo (solo cuentan los primeros ${permitidos})`
+      : `Comodines elegidos: ${comodines.length}/${permitidos}`;
+    const abierto = participantesAbiertos.has(name);
+    const cargados = preds.filter(p=>p.golesA!=null && p.golesB!=null).length;
     return `
       <div class="participant-block">
-        <div class="flexbetween">
-          <h3 style="font-size:1.1rem;">${escapeHtml(name)}</h3>
-          <button class="del-btn" onclick="borrarParticipante('${safeName}')">✕ Eliminar</button>
+        <div class="participant-head" onclick="toggleParticipante('${safeName}')">
+          <div class="ph-left">
+            <span class="ph-chev">${abierto?'▾':'▸'}</span>
+            <h3>${escapeHtml(name)}</h3>
+          </div>
+          <div class="ph-right">
+            <span class="ph-summary">${cargados}/${current.matches.length} pronósticos · ${comodines.length} comodines</span>
+            <button class="del-btn" onclick="event.stopPropagation();borrarParticipante('${safeName}')">✕ Eliminar</button>
+          </div>
         </div>
-        <p class="${countClass}" style="font-size:0.82rem;margin:4px 0 0;">Comodines elegidos: ${comodines.length}/${current.comodinesPermitidos}</p>
-        <table style="margin-top:8px;">
-          <thead><tr><th>#</th><th>Local</th><th>G</th><th></th><th>G</th><th>Visitante</th><th>Comodín</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
+        ${abierto ? `
+        <p class="${countClass}" style="font-size:0.82rem;margin:8px 0 8px;">${countText}</p>
+        ${rows}` : ''}
       </div>
     `;
   }).join('');
@@ -514,7 +803,7 @@ function renderParticipantesTab(){
   return `
     <div class="card">
       <h2>Agregar pronósticos con IA</h2>
-      <div class="col" style="margin-bottom:8px;">
+      <div class="col">
         <label>Nombre del participante</label>
         <input type="text" id="participantName" placeholder="Ej: Pablo">
       </div>
@@ -522,9 +811,9 @@ function renderParticipantesTab(){
         <label>Mensaje pegado de WhatsApp</label>
         <textarea id="participantText" placeholder="1) 2-1&#10;2) 1-1&#10;3) 0-2 ..."></textarea>
       </div>
-      <div class="row-inline" style="margin-top:8px;">
-        <button onclick="procesarConIA()" id="btnProcesarIA">Procesar con IA</button>
-        <span class="muted" id="iaStatus" style="font-size:0.82rem;"></span>
+      <div class="row-inline" style="margin-top:2px;">
+        <button class="btn-block" onclick="procesarConIA()" id="btnProcesarIA">Procesar con IA</button>
+        <span class="muted" id="iaStatus" style="font-size:0.82rem;width:100%;text-align:center;"></span>
       </div>
     </div>
     <div class="card">
@@ -540,22 +829,20 @@ function renderTablaTab(){
     return `<div class="empty"><h2>Todavía no hay participantes</h2><p class="muted">Sumalos desde la pestaña Participantes.</p></div>`;
   }
   const rows = standings.map((r,i)=>`
-    <tr>
-      <td class="mono ${i===0?'pos-1':''}">${i+1}</td>
-      <td>${escapeHtml(r.name)}</td>
-      <td class="mono">${r.total}</td>
-      <td class="muted mono">${r.exactos}</td>
-      <td class="muted mono">${r.aciertos}</td>
-      <td class="muted mono">${r.jugados}/${current.matches.length}</td>
-    </tr>
+    <div class="stand-row">
+      <div class="stand-pos ${i===0?'pos-1':''}">${i+1}</div>
+      <div class="stand-main">
+        <div class="stand-name">${escapeHtml(r.name)}</div>
+        <div class="stand-sub">${r.exactos} exactos · ${r.aciertos} ganador · ${r.jugados}/${current.matches.length} jugados</div>
+      </div>
+      <div class="stand-pts">${r.total}</div>
+    </div>
   `).join('');
   return `
     <div class="card">
       <h2>Tabla de posiciones</h2>
-      <table>
-        <thead><tr><th>Pos</th><th>Participante</th><th>Puntos</th><th>Exactos</th><th>Ganador</th><th>Jugados</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
+      <p class="muted" style="font-size:0.82rem;">Puntos: 3 por exacto, 1 por ganador, comodín doble.</p>
+      ${rows}
     </div>
   `;
 }
@@ -683,7 +970,14 @@ function toggleComodin(name, numero){
 function borrarParticipante(name){
   if(!confirm(`¿Eliminar a ${name}?`)) return;
   delete current.participants[name];
+  participantesAbiertos.delete(name);
   saveProde();
+  renderTab();
+}
+
+function toggleParticipante(name){
+  if(participantesAbiertos.has(name)) participantesAbiertos.delete(name);
+  else participantesAbiertos.add(name);
   renderTab();
 }
 
@@ -693,11 +987,21 @@ async function procesarConIA(){
   const statusEl = $('#iaStatus');
   if(!name){ showToast('Falta el nombre del participante'); return; }
   if(!text){ showToast('Falta pegar el mensaje'); return; }
-  statusEl.textContent = 'Procesando con IA...';
+  statusEl.textContent = 'Procesando...';
   $('#btnProcesarIA').disabled = true;
   try{
-    const parsed = await parsePredictionsWithAI(text, current.matches);
+    const local = parsePredictionsLocal(text, current.matches);
+    const scoredLines = text.split('\n').map(l=>l.trim()).filter(l=>/\d/.test(l)).length;
+    let parsed, usadoLocal = false;
+    if(local.predicciones.length >= 1 && local.predicciones.length >= Math.max(1, Math.ceil(scoredLines * 0.5))){
+      parsed = local;
+      usadoLocal = true;
+    }else{
+      statusEl.textContent = 'Procesando con IA...';
+      parsed = await parsePredictionsWithAI(text, current.matches);
+    }
     if(!current.participants[name]) current.participants[name] = {predicciones:[], comodines:[]};
+    participantesAbiertos.add(name);
     const participant = current.participants[name];
     const preds = participant.predicciones;
     parsed.predicciones.forEach(item=>{
@@ -710,9 +1014,22 @@ async function procesarConIA(){
       const set = new Set([...participant.comodines, ...parsed.comodines]);
       participant.comodines = Array.from(set);
     }
+    const permitidos = current.comodinesPermitidos || 0;
+    let recorteWc = '';
+    if(permitidos > 0 && participant.comodines.length > permitidos){
+      participant.comodines = participant.comodines.slice().sort((a,b)=>a-b).slice(0, permitidos);
+      recorteWc = ` (comodines recortados a los primeros ${permitidos})`;
+    }
     await saveProde();
-    const wcMsg = parsed.comodines.length ? ` (comodines detectados: ${parsed.comodines.join(', ')})` : '';
-    showToast(`Se cargaron ${parsed.predicciones.length} pronósticos de ${name}${wcMsg}`);
+    const total = current.matches.length;
+    const n = parsed.predicciones.length;
+    const wcMsg = participant.comodines.length ? ` (comodines: ${participant.comodines.join(', ')})` : '';
+    const viaMsg = (usadoLocal ? ' [parseo local]' : '') + recorteWc;
+    if(n < total){
+      showToast(`ATENCIÓN: se cargaron solo ${n} de ${total} pronósticos de ${name}${wcMsg}${viaMsg}. Revisá la pestaña Participantes.`);
+    }else{
+      showToast(`Se cargaron ${n} pronósticos de ${name}${wcMsg}${viaMsg}`);
+    }
     $('#participantText').value = '';
     renderTab();
   }catch(e){
@@ -723,16 +1040,39 @@ async function procesarConIA(){
   }
 }
 
+function cargarVistaPrevia(){
+  previewText = generateCopyText(current);
+  const el = $('#previewText');
+  if(el) el.textContent = previewText;
+  showToast('Vista previa actualizada');
+}
+
 async function copiarTexto(){
   const text = generateCopyText(current);
   try{
     await navigator.clipboard.writeText(text);
     showToast('Copiado ✅');
   }catch(e){
-    const ta = $('#copyTextarea');
+    if(copiarTextoFallback(text)) showToast('Copiado ✅');
+    else showToast('No se pudo copiar automáticamente');
+  }
+}
+
+function copiarTextoFallback(text){
+  try{
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly','');
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
     ta.select();
-    document.execCommand('copy');
-    showToast('Copiado (manual) ✅');
+    ta.setSelectionRange(0, ta.value.length);
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  }catch(e){
+    return false;
   }
 }
 

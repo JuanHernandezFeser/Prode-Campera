@@ -17,7 +17,7 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'Falta configurar GEMINI_API_KEY en las variables de entorno' });
   }
 
-  const model = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+  const model = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
 
   try {
     const response = await fetch(
