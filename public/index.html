@@ -419,6 +419,60 @@ function findMatchByTeams(leftName, rightName, matches){
   return null;
 }
 
+function cleanLine(line){
+  return line
+    .replace(/[\u{1F000}-\u{1FFFF}\u2600-\u27BF\u2022\u00B7\u2023]/gu,'')
+    .replace(/[~_]/g,'')
+    .replace(/\*/g,'')
+    .replace(/\.*\s*comod[ií]n\s*/gi,'')
+    .replace(/(^|\s)[Cc](\s|$)/g,'$1$2')
+    .replace(/[.\s]+$/,'')
+    .trim();
+}
+
+const TEAM_NAME_CHAR = "[A-Za-zÁÉÍÓÚÜáéíóúüÑñ.'()]";
+const TEAM_NAME_SEQ = TEAM_NAME_CHAR + "+(?:\\s+" + TEAM_NAME_CHAR + "+)*";
+const RE_TEAM_SCORES = new RegExp(
+  "^(.+?)\\s+(\\d{1,2})\\s*(?:[=:–-]|vs\\.?|\\ba\\b)?\\s*(" + TEAM_NAME_SEQ + ")\\s+(\\d{1,2})$", 'i');
+const RE_TEAM_SCORES_TOGETHER = new RegExp(
+  "^(.+?)\\s+(\\d{1,2})\\s*(?:[=:–-]|vs\\.?|\\ba\\b)\\s*(\\d{1,2})\\s+(" + TEAM_NAME_SEQ + ")$", 'i');
+
+function fuzzyNorm(s){ return normText(s).replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim(); }
+
+function fuzzySim(a, b){
+  a = fuzzyNorm(a); b = fuzzyNorm(b);
+  if(!a || !b) return 0;
+  if(a === b) return 1;
+  const min = Math.min(a.length, b.length);
+  let i = 0;
+  while(i < min && a[i] === b[i]) i++;
+  const prefix = i / min;
+  let contain = 0;
+  if(a.includes(b) || b.includes(a)) contain = Math.min(a.length, b.length) / Math.max(a.length, b.length);
+  return Math.max(prefix, contain);
+}
+
+function fuzzyFindMatchByTeams(leftName, rightName, matches){
+  const scored = [];
+  for(const m of matches){
+    const normal = (fuzzySim(leftName, m.teamA) + fuzzySim(rightName, m.teamB)) / 2;
+    const swapped = (fuzzySim(leftName, m.teamB) + fuzzySim(rightName, m.teamA)) / 2;
+    scored.push({ m, swap: swapped > normal, score: Math.max(normal, swapped) });
+  }
+  scored.sort((a,b)=>b.score-a.score);
+  const best = scored[0];
+  if(!best || best.score < 0.6) return null;
+  const second = scored[1] ? scored[1].score : 0;
+  if(best.score > second + 0.25) return { numero: best.m.number, swap: best.swap };
+  return null;
+}
+
+function resolveTeamMatch(leftName, rightName, numero, matches){
+  const mt = findMatchByTeams(leftName, rightName, matches) || fuzzyFindMatchByTeams(leftName, rightName, matches);
+  if(!mt) return null;
+  return { numero: numero !== null ? numero : mt.numero, swap: mt.swap };
+}
+
 function parsePredictionsLocal(rawText, matches){
   const byNum = new Map();
   const comos = new Set();
@@ -429,37 +483,65 @@ function parsePredictionsLocal(rawText, matches){
 
   for(const rawLine of lines){
     if(!/\d/.test(rawLine)) continue;
-    let line = rawLine;
-    const isWc = /comod[ií]n|\*|(^|\s)[Cc](\s|$)/i.test(line);
-    line = line.replace(/\.*\s*comod[ií]n\s*/gi,'').replace(/\*/g,'').replace(/(^|\s)[Cc](\s|$)/g,'$1$2').replace(/[.\s]+$/,'').trim();
+    const isWc = /comod[ií]n|\*|(^|\s)[Cc](\s|$)/i.test(rawLine);
+    let line = cleanLine(rawLine);
     if(!line) continue;
 
     let numero = null;
     let body = line;
-    const numMatch = line.match(/^(\d{1,2})\s*[-–.)]{1,2}(?=\s)/);
+    let numMatch = line.match(/^(\d{1,2})\s*[-–.)]{1,2}(?=\s)/);
+    if(!numMatch) numMatch = line.match(/^(\d{1,2})\s+(?=[A-Za-zÁÉÍÓÚÜáéíóúüÑñ])/);
     if(numMatch){
       numero = Number(numMatch[1]);
       body = line.slice(numMatch[0].length).trim();
     }
 
     let ga = null, gb = null;
+    let teamBased = false;
 
-    const parts = body.split(/\s*[=–-]\s*/).map(s=>s.trim()).filter(Boolean);
-    if(parts.length === 2 && /^\d+$/.test(parts[0]) && /^\d+$/.test(parts[1])){
-      ga = Number(parts[0]); gb = Number(parts[1]);
-    }else if(parts.length === 2){
-      const left = splitTeamScore(parts[0], teamNames);
-      const right = splitTeamScore(parts[1], teamNames);
-      if(left.team && right.team && typeof left.score === 'number' && typeof right.score === 'number'){
-        ga = left.score; gb = right.score;
-        const mt = findMatchByTeams(left.team, right.team, matches);
-        if(mt){
-          numero = mt.numero;
-          if(mt.swap){ const t = ga; ga = gb; gb = t; }
+    // 1) TeamA S1 [sep] TeamB S2   o   TeamA S1 sep S2 TeamB
+    const mt1 = body.match(RE_TEAM_SCORES);
+    const mt2 = mt1 ? null : body.match(RE_TEAM_SCORES_TOGETHER);
+    if(mt1 || mt2){
+      teamBased = true;
+      const leftName = mt1 ? mt1[1] : mt2[1];
+      const rightName = mt1 ? mt1[3] : mt2[4];
+      ga = Number(mt1 ? mt1[2] : mt2[2]);
+      gb = Number(mt1 ? mt1[4] : mt2[3]);
+      const mt = resolveTeamMatch(leftName, rightName, numero, matches);
+      if(mt){
+        numero = mt.numero;
+        if(mt.swap){ const t = ga; ga = gb; gb = t; }
+      }
+    }
+
+    // 2) split numerico o equipo+goles (fallback legacy)
+    if(ga === null){
+      const parts = body.split(/\s*[=–-]\s*/).map(s=>s.trim()).filter(Boolean);
+      if(parts.length === 2 && /^\d+$/.test(parts[0]) && /^\d+$/.test(parts[1])){
+        ga = Number(parts[0]); gb = Number(parts[1]);
+      }else if(parts.length === 2){
+        const left = splitTeamScore(parts[0], teamNames);
+        const right = splitTeamScore(parts[1], teamNames);
+        if(left.team && right.team && typeof left.score === 'number' && typeof right.score === 'number'){
+          teamBased = true;
+          ga = left.score; gb = right.score;
+          const mt = resolveTeamMatch(left.team, right.team, numero, matches);
+          if(mt){
+            numero = mt.numero;
+            if(mt.swap){ const t = ga; ga = gb; gb = t; }
+          }
         }
       }
     }
 
+    // 3) dos numeros puros sin separador: "1) 2 1"
+    if(ga === null && numero !== null){
+      const two = body.match(/^(\d{1,2})\s+(\d{1,2})$/);
+      if(two){ ga = Number(two[1]); gb = Number(two[2]); }
+    }
+
+    // 4) multiples pares de goles en la linea: "2-1 0-0"
     if(ga === null){
       const scores = [...body.matchAll(/(\d+)\s*[-–:x=]\s*(\d+)/g)];
       if(scores.length){
@@ -474,6 +556,7 @@ function parsePredictionsLocal(rawText, matches){
       }
     }
 
+    // 5) ultimo recurso: digitos a ambos lados de un separador
     if(ga === null){
       const sepIdx = body.search(/[=–-]/);
       if(sepIdx >= 0){
@@ -486,6 +569,7 @@ function parsePredictionsLocal(rawText, matches){
     }
 
     if(ga === null) continue;
+    if(teamBased && numero === null) continue;
     const n = numero || inOrder++;
     if(n >= 1 && n <= matches.length){
       byNum.set(n, { numero:n, golesA:ga, golesB:gb });
@@ -522,12 +606,13 @@ Reglas:
 - "numero" es el número de partido según el fixture de arriba.
 - "golesA" son los goles del equipo que figura primero en ese partido del fixture, "golesB" los del que figura segundo. Aunque el mensaje escriba los equipos en otro orden, usá el orden del fixture.
 - Incluí en "predicciones" TODOS los partidos del mensaje que tengan un resultado numérico claro. No omitas ninguno: si un partido tiene un resultado, incluílo. Es preferible un error puntual antes que dejar un partido afuera.
-- El resultado puede escribirse como "2 - 1", "2-1", "2:1" o "2 1". Los números que parecen goles van al equipo que los tiene al lado en el mensaje.
+- El resultado puede escribirse como "2 - 1", "2-1", "2:1", "2 1", "2 = 1", "2 vs 1", "2x1" o "2 a 1". El equipo y su gol suelen escribirse juntos, por ejemplo "ROSARIO CENTRAL 2 = ALDOSIVI 0" o "ROSARIO CENTRAL 2 ALDOSIVI 0" (sin separador entre equipos). Los números que parecen goles van al equipo que los tiene al lado en el mensaje.
+- Si el equipo está mal escrito (por ejemplo "VELEZ SARFIELD" en vez de "VELEZ SARSFIELD"), igual asignalo al partido del fixture que corresponda por contexto o por el número del partido.
 - Si el mensaje no tiene número pero sí los equipos, buscá esos equipos en el fixture para asignar el número correcto.
 - Si el mensaje no tiene ni número ni equipos, asigná los resultados en el orden en que aparecen (el primero es el partido 1, el segundo el partido 2, etc.).
 - "comodines" es la lista de números que el participante marcó como comodín (COMODIN, comodín, C, *, negrita, esté antes o después del resultado). Incluí TODOS los que encuentres.
 - No inventes partidos que no estén en el fixture.
-- Ignorá saludos, comentarios, nombres propios y emojis.
+- Ignorá saludos, comentarios, nombres propios y emojis (⚽, 👍, 🔥, etc.).
 - El JSON debe ser válido: cada elemento del array separado por coma, sin comas finales.`;
 
   const response = await fetch("/api/parse", {
@@ -992,13 +1077,24 @@ async function procesarConIA(){
   try{
     const local = parsePredictionsLocal(text, current.matches);
     const scoredLines = text.split('\n').map(l=>l.trim()).filter(l=>/\d/.test(l)).length;
-    let parsed, usadoLocal = false;
+    let parsed, usadoLocal = false, iaFallida = false;
     if(local.predicciones.length >= 1 && local.predicciones.length >= Math.max(1, Math.ceil(scoredLines * 0.5))){
       parsed = local;
       usadoLocal = true;
     }else{
       statusEl.textContent = 'Procesando con IA...';
-      parsed = await parsePredictionsWithAI(text, current.matches);
+      try{
+        parsed = await parsePredictionsWithAI(text, current.matches);
+      }catch(aiErr){
+        if(local.predicciones.length >= 1){
+          statusEl.textContent = 'IA no disponible, cargando parseo local parcial...';
+          parsed = local;
+          usadoLocal = true;
+          iaFallida = true;
+        }else{
+          throw aiErr;
+        }
+      }
     }
     if(!current.participants[name]) current.participants[name] = {predicciones:[], comodines:[]};
     participantesAbiertos.add(name);
@@ -1024,7 +1120,7 @@ async function procesarConIA(){
     const total = current.matches.length;
     const n = parsed.predicciones.length;
     const wcMsg = participant.comodines.length ? ` (comodines: ${participant.comodines.join(', ')})` : '';
-    const viaMsg = (usadoLocal ? ' [parseo local]' : '') + recorteWc;
+    const viaMsg = (usadoLocal ? ' [parseo local]' : '') + (iaFallida ? ' [la IA falló, se cargó el parseo local parcial]' : '') + recorteWc;
     if(n < total){
       showToast(`ATENCIÓN: se cargaron solo ${n} de ${total} pronósticos de ${name}${wcMsg}${viaMsg}. Revisá la pestaña Participantes.`);
     }else{
